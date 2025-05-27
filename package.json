@@ -1,0 +1,35 @@
+{
+  "name": "poc_mcp_server",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "start": "node index.js"
+  },
+  "author": "Luciano Yamane",
+  "license": "MIT",
+  "description": "Servidor MCP (Model Context Protocol) que integra com a API pública deckofcardsapi.com para criar, embaralhar e comprar cartas de baralhos.",
+  "keywords": [
+    "mcp",
+    "deckofcards",
+    "api",
+    "nodejs",
+    "prova de conceito",
+    "baralho"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lucianoyamane/poc-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lucianoyamane/poc-mcp-server/issues"
+  },
+  "homepage": "https://github.com/lucianoyamane/poc-mcp-server#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "dotenv": "^16.0.0",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.25.17"
+  }
+}
