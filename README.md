@@ -1,4 +1,4 @@
-# poc-mcp-server-deck-of-cards
+# poc-mcp-server-deck
 
 ## Descrição
 
