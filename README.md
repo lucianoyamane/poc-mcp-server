@@ -99,3 +99,31 @@ No Cursor, basta selecionar o servidor `deck` e clicar para iniciar, acompanhand
 ---
 
 Se tiver dúvidas ou quiser expandir o projeto, fique à vontade para contribuir!
+
+## Exemplo de uso: Simulando uma jogada de pôquer
+
+Abaixo está um exemplo de prompt em linguagem natural para simular uma jogada de pôquer Texas Hold'em utilizando o servidor MCP:
+
+> Eu gostaria de simular um jogo de pôquer Texas Hold'em com 4 jogadores, onde cada jogador recebe duas cartas e 5 cartas comunitárias são reveladas na mesa.
+
+Esse prompt solicita ao servidor MCP que:
+- Crie um baralho novo
+- Embaralhe o baralho
+- Distribua 2 cartas para cada um dos 4 jogadores
+- Revele 5 cartas comunitárias na mesa (como no Texas Hold'em)
+
+A resposta esperada será um objeto JSON contendo as cartas de cada jogador e as cartas da mesa, por exemplo:
+
+```json
+{
+  "jogadores": {
+    "jogador_1": ["AS", "KD"],
+    "jogador_2": ["10H", "9C"],
+    "jogador_3": ["2D", "7S"],
+    "jogador_4": ["JC", "5H"]
+  },
+  "mesa": ["3C", "8D", "QS", "4H", "6S"]
+}
+```
+
+> **Obs:** Você pode adaptar o prompt em linguagem natural conforme desejar, mudando o número de jogadores ou o formato da partida.

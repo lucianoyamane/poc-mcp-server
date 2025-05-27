@@ -33,20 +33,6 @@ server.tool(
   comprarCartas
 );
 
-server.tool(
-  "comprar_cartas_prompt_tool",
-  "Simula a lógica do prompt para perguntar quantas cartas comprar.",
-  { deck_id: embaralharBaralhoSchema.deck_id },
-  async ({ deck_id }) => {
-    return {
-      content: [{
-        type: "text",
-        text: `Quantas cartas você deseja comprar do baralho ${deck_id}? (simulação de prompt)`
-      }]
-    };
-  }
-);
-
 const transport = new StdioServerTransport();
 server.connect(transport);
 
