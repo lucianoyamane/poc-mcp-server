@@ -1,4 +1,4 @@
-# poc-mcp-server-deck
+# poc-mcp-server
 
 ## Descrição
 
