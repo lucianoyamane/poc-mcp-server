@@ -55,6 +55,60 @@ O script `test.js` irá:
 - Os schemas garantem a validação dos parâmetros recebidos.
 - O projeto utiliza dotenv para configuração flexível da URL base da API.
 
+## Client MCP (CLI)
+
+O projeto inclui um client MCP em Node.js na pasta `client`, que permite interagir com o servidor MCP via linha de comando, utilizando o modelo Claude (Anthropic) para processar linguagem natural e acionar ferramentas do servidor.
+
+### Instalação das dependências do client
+
+```bash
+cd client
+npm install
+```
+
+### Configuração
+
+Crie um arquivo `.env` na pasta `client` com sua chave da API do Anthropic:
+
+```env
+ANTHROPIC_API_KEY=sua-chave-aqui
+```
+
+### Como executar o client
+
+Com o servidor MCP rodando, execute o client passando o caminho do script do servidor MCP (por exemplo, `../index.js`):
+
+```bash
+node index.js <caminho_para_o_servidor_MCP>
+```
+
+Exemplo:
+
+```bash
+node index.js ../index.js
+```
+
+### Funcionamento
+
+- O client conecta ao servidor MCP via transporte STDIO.
+- Descobre e lista as ferramentas disponíveis.
+- Permite enviar queries em linguagem natural, que são processadas pelo Claude.
+- Se o modelo solicitar o uso de ferramentas, o client executa as chamadas e retorna os resultados ao modelo, continuando a conversa.
+- Para sair, digite `quit` no prompt.
+
+### Exemplo de uso
+
+```bash
+$ node index.js ../index.js
+MCP Client Started!
+Type your queries or 'quit' to exit.
+
+Query: Quero criar um baralho e comprar 5 cartas.
+[resposta do modelo com o resultado das operações]
+```
+
+> **Obs:** O client pode ser adaptado para outros modelos ou interfaces conforme necessário.
+
 ## Observações sobre prompt
 
 - O suporte a prompts reais depende de um client MCP com interface humana (chat, web, etc).
