@@ -1,8 +1,8 @@
-import { Anthropic } from "@anthropic-ai/sdk";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import readline from "readline/promises";
 import dotenv from "dotenv";
+import readline from "readline/promises";
+import { AnthropicHelper } from "./anthropicHelper.js";
 dotenv.config(); // load environment variables from .env
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 if (!ANTHROPIC_API_KEY) {
@@ -10,15 +10,15 @@ if (!ANTHROPIC_API_KEY) {
 }
 class MCPClient {
     mcp;
-    anthropic;
+    anthropicHelper;
     transport = null;
     tools = [];
+    messages = [];
     constructor() {
-        // Initialize Anthropic client and MCP client
-        this.anthropic = new Anthropic({
-            apiKey: ANTHROPIC_API_KEY,
-        });
+        // Initialize AnthropicHelper e MCP client
+        this.anthropicHelper = new AnthropicHelper();
         this.mcp = new Client({ name: "mcp-client-cli", version: "1.0.0" });
+        this.messages = [];
     }
     async connectToServer(serverScriptPath) {
         /**
@@ -29,15 +29,10 @@ class MCPClient {
         try {
             // Determine script type and appropriate command
             const isJs = serverScriptPath.endsWith(".js");
-            const isPy = serverScriptPath.endsWith(".py");
-            if (!isJs && !isPy) {
-                throw new Error("Server script must be a .js or .py file");
+            if (!isJs) {
+                throw new Error("Server script must be a .js file");
             }
-            const command = isPy
-                ? process.platform === "win32"
-                    ? "python"
-                    : "python3"
-                : process.execPath;
+            const command = process.execPath;
             // Initialize transport and connect to server
             this.transport = new StdioClientTransport({
                 command,
@@ -60,35 +55,25 @@ class MCPClient {
             throw e;
         }
     }
-    async processQuery(query) {
+    async processQuery() {
         /**
-         * Process a query using Claude and available tools
-         *
-         * @param query - The user's input query
-         * @returns Processed response as a string
+         * Processa a query usando Claude e as ferramentas disponíveis, mantendo o contexto da conversa
          */
-        const messages = [
-            {
-                role: "user",
-                content: query,
-            },
-        ];
-        // Initial Claude API call
-        const response = await this.anthropic.messages.create({
-            model: "claude-3-5-sonnet-20241022",
-            max_tokens: 1000,
-            messages,
+        // Chamada inicial para o modelo Claude via helper
+        const response = await this.anthropicHelper.sendMessage({
+            messages: this.messages,
             tools: this.tools,
         });
-        // Process response and handle tool calls
+        // Processa resposta e tool calls
         const finalText = [];
         const toolResults = [];
         for (const content of response.content) {
             if (content.type === "text") {
+                this.messages.push({ role: "assistant", content: content.text });
                 finalText.push(content.text);
             }
             else if (content.type === "tool_use") {
-                // Execute tool call
+                // Executa chamada de ferramenta
                 const toolName = content.name;
                 const toolArgs = content.input;
                 const result = await this.mcp.callTool({
@@ -97,25 +82,26 @@ class MCPClient {
                 });
                 toolResults.push(result);
                 finalText.push(`[Calling tool ${toolName} with args ${JSON.stringify(toolArgs)}]`);
-                // Continue conversation with tool results
-                messages.push({
+                // Continua a conversa com o resultado da ferramenta
+                this.messages.push({
                     role: "user",
                     content: result.content,
                 });
-                // Get next response from Claude
-                const response = await this.anthropic.messages.create({
-                    model: "claude-3-5-sonnet-20241022",
-                    max_tokens: 1000,
-                    messages,
+                // Nova chamada para o modelo Claude via helper
+                const response = await this.anthropicHelper.sendMessage({
+                    messages: this.messages,
                 });
-                finalText.push(response.content[0].type === "text" ? response.content[0].text : "");
+                if (response.content[0].type === "text") {
+                    this.messages.push({ role: "assistant", content: response.content[0].text });
+                    finalText.push(response.content[0].text);
+                }
             }
         }
         return finalText.join("\n");
     }
     async chatLoop() {
         /**
-         * Run an interactive chat loop
+         * Executa o loop de chat interativo
          */
         const rl = readline.createInterface({
             input: process.stdin,
@@ -129,7 +115,8 @@ class MCPClient {
                 if (message.toLowerCase() === "quit") {
                     break;
                 }
-                const response = await this.processQuery(message);
+                this.messages.push({ role: "user", content: message });
+                const response = await this.processQuery();
                 console.log("\n" + response);
             }
         }
@@ -156,7 +143,6 @@ async function main() {
     }
     finally {
         await mcpClient.cleanup();
-        process.exit(0);
     }
 }
 main();
