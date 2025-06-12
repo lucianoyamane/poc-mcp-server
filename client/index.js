@@ -29,15 +29,10 @@ class MCPClient {
         try {
             // Determine script type and appropriate command
             const isJs = serverScriptPath.endsWith(".js");
-            const isPy = serverScriptPath.endsWith(".py");
-            if (!isJs && !isPy) {
-                throw new Error("Server script must be a .js or .py file");
+            if (!isJs) {
+                throw new Error("Server script must be a .js file");
             }
-            const command = isPy
-                ? process.platform === "win32"
-                    ? "python"
-                    : "python3"
-                : process.execPath;
+            const command = process.execPath;
             // Initialize transport and connect to server
             this.transport = new StdioClientTransport({
                 command,
@@ -148,7 +143,6 @@ async function main() {
     }
     finally {
         await mcpClient.cleanup();
-        // process.exit(0);
     }
 }
 main();
