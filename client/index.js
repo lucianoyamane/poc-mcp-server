@@ -183,12 +183,19 @@ class MCPClient {
                     const jogo = matchExpRegras[1].trim();
                     try {
                         const promptResult = await this.mcp.getPrompt({ name: "explicar-regras", arguments: { jogo } });
-                        console.log("\nMensagem(s) do prompt:");
-                        for (const msg of promptResult.messages) {
-                            if (msg.content && typeof msg.content === 'object' && 'text' in msg.content) {
-                                console.log(`- ${msg.role}: ${msg.content.text}`);
-                            } else {
-                                console.log(`- ${msg.role}:`, msg.content);
+                        // Envie a mensagem do prompt para o modelo Claude
+                        const promptMessages = promptResult.messages.map(m => ({
+                            role: m.role,
+                            content: typeof m.content === 'object' && 'text' in m.content ? m.content.text : m.content
+                        }));
+                        const response = await this.anthropicHelper.sendMessage({
+                            messages: promptMessages,
+                            tools: this.tools,
+                        });
+                        for (const content of response.content) {
+                            if (content.type === "text") {
+                                console.log("\nResposta do modelo:");
+                                console.log(content.text);
                             }
                         }
                     } catch (err) {
