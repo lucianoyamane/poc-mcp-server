@@ -2,6 +2,8 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
+  GetPromptRequestSchema,
+  ListPromptsRequestSchema,
   ListResourcesRequestSchema,
   ListResourceTemplatesRequestSchema,
   ListToolsRequestSchema,
@@ -22,10 +24,92 @@ const server = new Server(
     capabilities: {
       resources: {},
       tools: {},
+      prompts: {},
     },
   }
 );
 
+// Lista de prompts
+const prompts = {
+  "explicar-regras": {
+    name: "explicar-regras",
+    description: "Explica as regras de um jogo de cartas.",
+    arguments: [
+      { name: "jogo", description: "Nome do jogo de cartas", required: true }
+    ]
+  },
+  "sugerir-jogada": {
+    name: "sugerir-jogada",
+    description: "Sugere a melhor jogada com base nas cartas informadas.",
+    arguments: [
+      { name: "cartas", description: "Cartas disponíveis (ex: 'AS, KD, 10H, 9C')", required: true }
+    ]
+  },
+  "simular-partida": {
+    name: "simular-partida",
+    description: "Simula uma partida de um jogo de cartas com N jogadores.",
+    arguments: [
+      { name: "jogo", description: "Nome do jogo de cartas", required: true },
+      { name: "jogadores", description: "Número de jogadores", required: true }
+    ]
+  },
+  "mensagem-personalizada": {
+    name: "mensagem-personalizada",
+    description: "Gera uma mensagem de boas-vindas ou parabéns para um jogador.",
+    arguments: [
+      { name: "nome", description: "Nome do jogador", required: true },
+      { name: "tipo", description: "Tipo de mensagem (ex: 'boas-vindas', 'parabéns')", required: true }
+    ]
+  }
+};
+
+// Handlers dos prompts
+const promptHandlers = {
+  "explicar-regras": ({ jogo }) => ({
+    messages: [
+      {
+        role: "user",
+        content: {
+          type: "text",
+          text: `Por favor, explique as regras do jogo de ${jogo}.`
+        }
+      }
+    ]
+  }),
+  "sugerir-jogada": ({ cartas }) => ({
+    messages: [
+      {
+        role: "user",
+        content: {
+          type: "text",
+          text: `Com as cartas ${cartas}, qual seria a melhor jogada?`
+        }
+      }
+    ]
+  }),
+  "simular-partida": ({ jogo, jogadores }) => ({
+    messages: [
+      {
+        role: "user",
+        content: {
+          type: "text",
+          text: `Simule uma partida de ${jogo} com ${jogadores} jogadores.`
+        }
+      }
+    ]
+  }),
+  "mensagem-personalizada": ({ nome, tipo }) => ({
+    messages: [
+      {
+        role: "user",
+        content: {
+          type: "text",
+          text: `Envie uma mensagem de ${tipo} para ${nome}.`
+        }
+      }
+    ]
+  })
+};
 
 // Handler para chamada de tool
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -197,6 +281,19 @@ server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => {
       },
     ],
   };
+});
+
+// Handler para listar prompts
+server.setRequestHandler(ListPromptsRequestSchema, () => ({
+  prompts: Object.values(prompts)
+}));
+
+// Handler para obter prompt
+server.setRequestHandler(GetPromptRequestSchema, (request) => {
+  const { name, arguments: args } = request.params;
+  const handler = promptHandlers[name];
+  if (!handler) throw new Error("Prompt não encontrado");
+  return handler(args);
 });
 
 const transport = new StdioServerTransport();
