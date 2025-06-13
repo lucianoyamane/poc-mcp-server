@@ -123,6 +123,46 @@ class MCPClient {
                     }
                     continue;
                 }
+                if (message.toLowerCase() === "prompts") {
+                    const prompts = await this.mcp.listPrompts();
+                    console.log("\nPrompts disponíveis:");
+                    for (const prompt of prompts.prompts) {
+                        console.log(`- ${prompt.name}: ${prompt.description}`);
+                        if (prompt.arguments) {
+                            for (const arg of prompt.arguments) {
+                                console.log(`    • ${arg.name} (${arg.required ? 'obrigatório' : 'opcional'}): ${arg.description}`);
+                            }
+                        }
+                    }
+                    continue;
+                }
+                if (message.toLowerCase().startsWith("prompt ")) {
+                    const [_, nomePrompt, ...argsArr] = message.split(" ");
+                    const argsStr = argsArr.join(" ").trim();
+                    let args = {};
+                    if (argsStr) {
+                        try {
+                            args = JSON.parse(argsStr);
+                        } catch (e) {
+                            console.log("Argumentos inválidos. Use JSON válido, exemplo: prompt explicar-regras {\"jogo\":\"pôquer\"}");
+                            continue;
+                        }
+                    }
+                    try {
+                        const promptResult = await this.mcp.getPrompt({ name: nomePrompt, arguments: args });
+                        console.log("\nMensagem(s) do prompt:");
+                        for (const msg of promptResult.messages) {
+                            if (msg.content && typeof msg.content === 'object' && 'text' in msg.content) {
+                                console.log(`- ${msg.role}: ${msg.content.text}`);
+                            } else {
+                                console.log(`- ${msg.role}:`, msg.content);
+                            }
+                        }
+                    } catch (err) {
+                        console.log("Erro ao consumir prompt:", err.message);
+                    }
+                    continue;
+                }
                 if (message.toLowerCase().startsWith("resource ")) {
                     const uri = message.substring("resource ".length).trim();
                     try {
@@ -134,6 +174,142 @@ class MCPClient {
                         }
                     } catch (err) {
                         console.log("Erro ao ler resource:", err.message);
+                    }
+                    continue;
+                }
+                // Matching natural para o prompt 'explicar-regras'
+                const matchExpRegras = message.toLowerCase().match(/^explique as regras do (.+)$/);
+                if (matchExpRegras) {
+                    const jogo = matchExpRegras[1].trim();
+                    try {
+                        const promptResult = await this.mcp.getPrompt({ name: "explicar-regras", arguments: { jogo } });
+                        // Log da mensagem do prompt
+                        console.log("\n[Prompt MCP] Mensagem enviada ao modelo:");
+                        for (const msg of promptResult.messages) {
+                            if (msg.content && typeof msg.content === 'object' && 'text' in msg.content) {
+                                console.log(`- ${msg.role}: ${msg.content.text}`);
+                            } else {
+                                console.log(`- ${msg.role}:`, msg.content);
+                            }
+                        }
+                        // Envie a mensagem do prompt para o modelo Claude
+                        const promptMessages = promptResult.messages.map(m => ({
+                            role: m.role,
+                            content: typeof m.content === 'object' && 'text' in m.content ? m.content.text : m.content
+                        }));
+                        const response = await this.anthropicHelper.sendMessage({
+                            messages: promptMessages,
+                            tools: this.tools,
+                        });
+                        for (const content of response.content) {
+                            if (content.type === "text") {
+                                console.log("\nResposta do modelo:");
+                                console.log(content.text);
+                            }
+                        }
+                    } catch (err) {
+                        console.log("Erro ao consumir prompt:", err.message);
+                    }
+                    continue;
+                }
+                // Matching natural para o prompt 'sugerir-jogada'
+                const matchSugJogada = message.toLowerCase().match(/^melhor jogada com (.+)$/);
+                if (matchSugJogada) {
+                    const cartas = matchSugJogada[1].trim();
+                    try {
+                        const promptResult = await this.mcp.getPrompt({ name: "sugerir-jogada", arguments: { cartas } });
+                        console.log("\n[Prompt MCP] Mensagem enviada ao modelo:");
+                        for (const msg of promptResult.messages) {
+                            if (msg.content && typeof msg.content === 'object' && 'text' in msg.content) {
+                                console.log(`- ${msg.role}: ${msg.content.text}`);
+                            } else {
+                                console.log(`- ${msg.role}:`, msg.content);
+                            }
+                        }
+                        const promptMessages = promptResult.messages.map(m => ({
+                            role: m.role,
+                            content: typeof m.content === 'object' && 'text' in m.content ? m.content.text : m.content
+                        }));
+                        const response = await this.anthropicHelper.sendMessage({
+                            messages: promptMessages,
+                            tools: this.tools,
+                        });
+                        for (const content of response.content) {
+                            if (content.type === "text") {
+                                console.log("\nResposta do modelo:");
+                                console.log(content.text);
+                            }
+                        }
+                    } catch (err) {
+                        console.log("Erro ao consumir prompt:", err.message);
+                    }
+                    continue;
+                }
+                // Matching natural para o prompt 'simular-partida'
+                const matchSimPartida = message.toLowerCase().match(/^simule uma partida de (.+?) com (\d+) jogadores?\.?$/);
+                if (matchSimPartida) {
+                    const jogo = matchSimPartida[1].trim();
+                    const jogadores = matchSimPartida[2].trim();
+                    try {
+                        const promptResult = await this.mcp.getPrompt({ name: "simular-partida", arguments: { jogo, jogadores } });
+                        console.log("\n[Prompt MCP] Mensagem enviada ao modelo:");
+                        for (const msg of promptResult.messages) {
+                            if (msg.content && typeof msg.content === 'object' && 'text' in msg.content) {
+                                console.log(`- ${msg.role}: ${msg.content.text}`);
+                            } else {
+                                console.log(`- ${msg.role}:`, msg.content);
+                            }
+                        }
+                        const promptMessages = promptResult.messages.map(m => ({
+                            role: m.role,
+                            content: typeof m.content === 'object' && 'text' in m.content ? m.content.text : m.content
+                        }));
+                        const response = await this.anthropicHelper.sendMessage({
+                            messages: promptMessages,
+                            tools: this.tools,
+                        });
+                        for (const content of response.content) {
+                            if (content.type === "text") {
+                                console.log("\nResposta do modelo:");
+                                console.log(content.text);
+                            }
+                        }
+                    } catch (err) {
+                        console.log("Erro ao consumir prompt:", err.message);
+                    }
+                    continue;
+                }
+                // Matching natural para o prompt 'mensagem-personalizada'
+                const matchMsgPers = message.toLowerCase().match(/^envie uma mensagem de (.+) para (.+)$/);
+                if (matchMsgPers) {
+                    const tipo = matchMsgPers[1].trim();
+                    const nome = matchMsgPers[2].trim();
+                    try {
+                        const promptResult = await this.mcp.getPrompt({ name: "mensagem-personalizada", arguments: { nome, tipo } });
+                        console.log("\n[Prompt MCP] Mensagem enviada ao modelo:");
+                        for (const msg of promptResult.messages) {
+                            if (msg.content && typeof msg.content === 'object' && 'text' in msg.content) {
+                                console.log(`- ${msg.role}: ${msg.content.text}`);
+                            } else {
+                                console.log(`- ${msg.role}:`, msg.content);
+                            }
+                        }
+                        const promptMessages = promptResult.messages.map(m => ({
+                            role: m.role,
+                            content: typeof m.content === 'object' && 'text' in m.content ? m.content.text : m.content
+                        }));
+                        const response = await this.anthropicHelper.sendMessage({
+                            messages: promptMessages,
+                            tools: this.tools,
+                        });
+                        for (const content of response.content) {
+                            if (content.type === "text") {
+                                console.log("\nResposta do modelo:");
+                                console.log(content.text);
+                            }
+                        }
+                    } catch (err) {
+                        console.log("Erro ao consumir prompt:", err.message);
                     }
                     continue;
                 }
