@@ -58,6 +58,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       ],
     };
   }
+  if (name === "embaralhar_pilha") {
+    // Tool para embaralhar uma pilha específica
+    const { deck_id, pile_name } = args;
+    if (!deck_id || !pile_name) {
+      throw new Error("Parâmetros obrigatórios: deck_id, pile_name");
+    }
+    const DECK_API_BASE_URL = process.env.DECK_API_BASE_URL || "https://deckofcardsapi.com/api/deck";
+    const url = `${DECK_API_BASE_URL}/${deck_id}/pile/${pile_name}/shuffle/`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(data),
+        },
+      ],
+    };
+  }
   throw new Error("Tool não encontrada: " + name);
 });
 
@@ -148,6 +167,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             cards: { type: "string", description: "Cartas a adicionar (ex: 'AS,2S')" }
           },
           required: ["deck_id", "pile_name", "cards"],
+        },
+      },
+      {
+        name: "embaralhar_pilha",
+        description: "Embaralha uma pilha específica de um baralho",
+        inputSchema: {
+          type: "object",
+          properties: {
+            deck_id: { type: "string", description: "ID do baralho" },
+            pile_name: { type: "string", description: "Nome da pilha" }
+          },
+          required: ["deck_id", "pile_name"],
         },
       },
     ],
