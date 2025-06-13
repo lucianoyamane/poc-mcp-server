@@ -183,6 +183,15 @@ class MCPClient {
                     const jogo = matchExpRegras[1].trim();
                     try {
                         const promptResult = await this.mcp.getPrompt({ name: "explicar-regras", arguments: { jogo } });
+                        // Log da mensagem do prompt
+                        console.log("\n[Prompt MCP] Mensagem enviada ao modelo:");
+                        for (const msg of promptResult.messages) {
+                            if (msg.content && typeof msg.content === 'object' && 'text' in msg.content) {
+                                console.log(`- ${msg.role}: ${msg.content.text}`);
+                            } else {
+                                console.log(`- ${msg.role}:`, msg.content);
+                            }
+                        }
                         // Envie a mensagem do prompt para o modelo Claude
                         const promptMessages = promptResult.messages.map(m => ({
                             role: m.role,
