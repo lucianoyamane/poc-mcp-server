@@ -109,11 +109,33 @@ class MCPClient {
         });
         try {
             console.log("\nMCP Client Started!");
-            console.log("Type your queries or 'quit' to exit.");
+            console.log("Type your queries, 'resources' to listar resources, or 'quit' to exit.");
             while (true) {
                 const message = await rl.question("\nQuery: ");
                 if (message.toLowerCase() === "quit") {
                     break;
+                }
+                if (message.toLowerCase() === "resources") {
+                    const resources = await this.mcp.listResources();
+                    console.log("\nResources disponíveis:");
+                    for (const resource of resources.resources) {
+                        console.log(`- ${resource.name}: ${resource.uriTemplate}`);
+                    }
+                    continue;
+                }
+                if (message.toLowerCase().startsWith("resource ")) {
+                    const uri = message.substring("resource ".length).trim();
+                    try {
+                        const resource = await this.mcp.readResource({ uri });
+                        console.log("\nConteúdo do resource:");
+                        for (const content of resource.contents) {
+                            console.log(`- URI: ${content.uri}`);
+                            console.log(content.text);
+                        }
+                    } catch (err) {
+                        console.log("Erro ao ler resource:", err.message);
+                    }
+                    continue;
                 }
                 this.messages.push({ role: "user", content: message });
                 const response = await this.processQuery();
