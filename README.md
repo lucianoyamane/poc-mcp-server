@@ -4,6 +4,16 @@
 
 Este projeto é uma prova de conceito de um servidor MCP (Model Context Protocol) que integra com a API pública deckofcardsapi.com para criar, embaralhar, comprar cartas de baralhos, manipular pilhas e interagir via prompts. O projeto está modularizado para facilitar manutenção e extensões.
 
+---
+
+## Observação sobre a abordagem manual (baixo nível) do MCP
+
+> **Nota:** Este projeto utiliza a API de **baixo nível** do MCP SDK (`Server` e `setRequestHandler`) ao invés das abstrações de alto nível (`McpServer`, `server.tool`, etc). Isso foi necessário para garantir controle total sobre o registro de tools, resources, templates e prompts, além de compatibilidade com o Inspector e outros clients MCP. Essa abordagem é ideal para provas de conceito, debugging e cenários que exigem customização avançada.
+>
+> Para mais detalhes, consulte o arquivo [`docs/plano-refatoracao.md`](docs/plano-refatoracao.md).
+
+---
+
 ## Estrutura do Projeto
 
 - `index.js`: Ponto de entrada do servidor MCP. Registra as ferramentas (tools), resources dinâmicos e prompts.
@@ -114,6 +124,12 @@ Você pode testar o servidor e suas capabilities com o [MCP Inspector](https://g
 
 ```bash
 npx @modelcontextprotocol/inspector node index.js
+```
+
+Ou, se preferir, utilize o script já definido no `package.json`:
+
+```bash
+npm run inspector
 ```
 
 - Acesse a aba **Tools** para testar as ferramentas disponíveis.
