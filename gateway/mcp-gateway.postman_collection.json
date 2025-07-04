@@ -1,0 +1,151 @@
+{
+  "info": {
+    "_postman_id": "b1e7e7e0-1234-4cde-9abc-abcdef123456",
+    "name": "MCP Gateway HTTP",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Coleção para testar o gateway HTTP do servidor MCP."
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "health"]
+        }
+      }
+    },
+    {
+      "name": "Criar Sessão de Chat",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/chat/session",
+          "host": ["{{base_url}}"],
+          "path": ["api", "chat", "session"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Enviar Mensagem",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"message\": \"Explique as regras do pôquer\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/chat/message",
+          "host": ["{{base_url}}"],
+          "path": ["api", "chat", "message"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Obter Histórico de Chat",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/chat/history/{{sessionId}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "chat", "history", "{{sessionId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Listar Tools",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/tools",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tools"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Listar Resources",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/resources",
+          "host": ["{{base_url}}"],
+          "path": ["api", "resources"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ler Resource",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"uri\": \"deck://<deckId>/pile/<pileName>/list\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/resources/read",
+          "host": ["{{base_url}}"],
+          "path": ["api", "resources", "read"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Listar Prompts",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/prompts",
+          "host": ["{{base_url}}"],
+          "path": ["api", "prompts"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Executar Prompt",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"explicar-regras\",\n  \"arguments\": {\n    \"jogo\": \"pôquer\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/prompts/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "prompts", "execute"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3001" },
+    { "key": "sessionId", "value": "" }
+  ]
+} 
